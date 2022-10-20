@@ -119,7 +119,7 @@ def prepare_experiment(name, args):
  
     with open(params_file, 'r') as f: 
         import yaml 
-        params = yaml.load(f) 
+        params = yaml.safe_load(f) 
      
     if not 'learning_method' in params: 
         print('Learning method is not explicitly defined, assuming RTRL') 
