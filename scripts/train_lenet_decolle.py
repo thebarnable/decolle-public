@@ -71,29 +71,14 @@ net = LenetDECOLLE( out_channels=params['out_channels'],
                     method=params['learning_method'],
                     with_output_layer=params['with_output_layer']).to(device)
 
-if hasattr(params['learning_rate'], '__len__'):
-    from decolle.utils import MultiOpt
-    opts = []
-    for i in range(len(params['learning_rate'])):
-        opts.append(torch.optim.Adamax(net.get_trainable_parameters(i), lr=params['learning_rate'][i], betas=params['betas']))
-    opt = MultiOpt(*opts)
-else:
-    opt = torch.optim.Adamax(net.get_trainable_parameters(), lr=params['learning_rate'], betas=params['betas'])
+opt = torch.optim.Adamax(net.get_trainable_parameters(), lr=params['learning_rate'], betas=params['betas'])
 
 reg_l = params['reg_l'] if 'reg_l' in params else None
 
-if 'loss_scope' in params and params['loss_scope']=='global':
-    loss = [None for i in range(len(net))]
-    if net.with_output_layer: 
-        loss[-1] = cross_entropy_one_hot
-    else:
-        raise RuntimeError('bptt mode needs output layer')
-    decolle_loss = DECOLLELoss(net = net, loss_fn = loss, reg_l=reg_l)
-else:
-    loss = [torch.nn.SmoothL1Loss() for i in range(len(net))]
-    if net.with_output_layer:
-        loss[-1] = cross_entropy_one_hot
-    decolle_loss = DECOLLELoss(net = net, loss_fn = loss, reg_l=reg_l)
+loss = [torch.nn.SmoothL1Loss() for i in range(len(net))]
+if net.with_output_layer:
+    loss[-1] = cross_entropy_one_hot
+decolle_loss = DECOLLELoss(net = net, loss_fn = loss, reg_l=reg_l)
 
 ##Initialize
 net.init_parameters(data_batch[:32])

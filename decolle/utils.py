@@ -399,53 +399,7 @@ def get_output_shape(input_shape, kernel_size=[3,3], stride = [1,1], padding=[1,
     width = int((im_width + 2 * padding[1] - dilation[1] * 
                   (kernel_size[1] - 1) - 1) // stride[1] + 1) 
     return [height, width] 
- 
-class DictMultiOpt(object): 
-    def __init__(self, params): 
-        self.params = params 
-    def __getitem__(self, key): 
-        p = [] 
-        for par in self.params: 
-            p.append(par[key]) 
-        return p 
-    def __setitem__(self, key, values): 
-        for i, par in enumerate(self.params): 
-            par[key] = values[i] 
- 
-class MultiOpt(object): 
-    def __init__(self, *opts): 
-        self.optimizers = opts 
-        self.multioptparam = DictMultiOpt([opt.param_groups[-1] for opt in self.optimizers]) 
- 
-    def zero_grad(self): 
-        for opt in self.optimizers: 
-            opt.zero_grad() 
- 
-    def step(self): 
-        for opt in self.optimizers: 
-            opt.step() 
-     
-    def __getstate__(self): 
-        p = [] 
-        for opt in self.optimizers: 
-            p.append(opt.__getstate__()) 
-        return p 
-     
-    def state_dict(self): 
-        return self.__getstate__() 
-     
-    def load_state_dicts(self, state_dicts): 
-        # need to load state_dict of each optimizer 
-        for i,op in enumerate(self.optimizers): 
-            op.load_state_dict(state_dicts[i]) 
- 
-    def __iter__(self): 
-        for opt in self.optimizers: 
-            yield opt 
-     
-    @property 
-    def param_groups(self): 
-        return [self.multioptparam] 
+
 
 def train_timewrapped(gen_train, loss_fn, net, opt, epoch, online_update=False, reg_loss_fn=None, batches_per_epoch=-1, final_t_loss=True):
     '''
